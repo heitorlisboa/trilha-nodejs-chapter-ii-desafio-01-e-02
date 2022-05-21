@@ -1,0 +1,265 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Atlas",
+    "description": "This is the documentation of the Atlas API",
+    "version": "1.0.0",
+    "contact": {
+      "email": "heitor01101000@gmail.com"
+    },
+    "license": {
+      "name": "GPL-3.0-only",
+      "url": "https://spdx.org/licenses/GPL-3.0-only.html"
+    }
+  },
+  "tags": [
+    {
+      "name": "Users",
+      "description": "Users management"
+    }
+  ],
+  "paths": {
+    "/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get users",
+        "description": "Get all registered users. **You'll need to be an admin to access this route**",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "user_id",
+            "description": "Admin user id",
+            "schema": {
+              "$ref": "#/definitions/UserId"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "User not found OR user is not admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    { "$ref": "#/definitions/ErrorUserNotFound" },
+                    { "$ref": "#/definitions/ErrorNotAuthorized" }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Users"],
+        "summary": "Create a user",
+        "description": "Create a new user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  }
+                },
+                "example": {
+                  "name": "John Doe",
+                  "email": "johndoe@gmail.com"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email already taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "error": "Email is already taken"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{user_id}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get user info",
+        "description": "Get a specific user info",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "description": "Id from the user whose info you want",
+            "schema": {
+              "$ref": "#/definitions/UserId"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/ErrorUserNotFound"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{user_id}/admin": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Turn user into admin",
+        "description": "Turn a normal user into an admin user",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "description": "Id from the user you want to turn into admin",
+            "schema": {
+              "$ref": "#/definitions/UserId"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/ErrorUserNotFound"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        },
+        "admin": {
+          "type": "boolean"
+        },
+        "email": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "datetime"
+        }
+      },
+      "example": {
+        "id": "0123456789abcdef",
+        "name": "John Doe",
+        "admin": false,
+        "email": "johndoe@gmail.com",
+        "created_at": "2077-11-04T00:00:00.000Z",
+        "updated_at": "2077-11-04T00:00:00.000Z"
+      }
+    },
+    "UserId": {
+      "type": "string",
+      "format": "uuid",
+      "example": "0123456789abcdef"
+    },
+    "ErrorUserNotFound": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        }
+      },
+      "example": {
+        "error": "User not found"
+      }
+    },
+    "ErrorNotAuthorized": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        }
+      },
+      "example": {
+        "error": "Unauthorized action! User is not admin"
+      }
+    }
+  }
+}
